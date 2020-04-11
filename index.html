@@ -7,9 +7,6 @@
         <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
         <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
         <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet' />
-        <!-- 
-            Use Unwired Maps JS & CSS in addition to Mapbox's GL library for the simplest implementation of Unwired Map Tiles
-        -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
         <script src="https://tiles.unwiredmaps.com/js/leaflet-unwired.js"></script>
@@ -22,9 +19,16 @@
         </style>
     </head>
     <body>
-        <div id='map'></div>
         
-<div id="mapid" style="width: 600px; height: 400px;"></div>
+    
+        <div id='map' style ="height: 80%; top: 15%"></div>
+     
+     <div id ="all">Show All</div>
+    <div id = 'positive'>Only Affected</div>
+    <div id = 'os'>Travelled other state</div>
+    <div id = 'oc'>Travelled other country</div>
+  
+</div>
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
         <script>
@@ -53,24 +57,34 @@ L.control.layers({
     "Hybrid": hybrid
 }).addTo(map);
             //Add Geolocation control to the map (will only render when 
+var resal = []; 
+var resoc =[];
+var resos = [];
+var respo = [];
 var db = new restdb("5e91b014111788414066c925");
 var query = {}; // get all records
 var hints = {"$max": 10, "$orderby": {"_id": -1}}; // top ten, sort by creation id in descending order
+var markers = [];
 db.surveyid.find(query, hints, function(err, res){
   if (!err){
     console.log(res);
-    var i;
-for (i = 0; i < res.length; i++) {
- 
-    var marker = L.marker([ res[i].lat/10000, res[i].lon/10000]).addTo(map);
-    marker.bindTooltip("Number of residents: "+res[i].number + " Survey ID: " + res[i].id).openTooltip();
-   /* var popup = L.popup()
-    .setLatLng([ res[i].lat/10000, res[i].lon/10000])
-    .setContent("Number of residents: "+res[i].number + " Survey ID: " + res[i].id)
-    .addTo(map);*/
-}
+    drawMarkers(res); 
+    for (var i = res.length - 1; i >= 0; i--) {
+        resal.push(res[i]);
+        if (res[i].oc == true){
+            resoc.push(res[i]);
+        }
+        if (res[i].os == true){
+            resos.push(res[i]);
+        }
+        if (res[i].risklevel == 3){
+            respo.push(res[i]);
+        }
+    }
   }
 });
+
+
 /*var settings = {
   "async": true,
   "crossDomain": true,
@@ -113,6 +127,43 @@ $.ajax(settings).done(function (response) {
   console.log(response);
 });*/
 
+
+function drawMarkers(res){
+   markers =[];
+   var i;
+for (i = 0; i < res.length; i++) {
+ 
+    var marker = L.marker([ res[i].lat/10000, res[i].lon/10000]).addTo(map);
+    marker.bindTooltip("Number of residents: "+res[i].number + " Survey ID: " + res[i].id).openTooltip();
+    markers.push(marker);
+}
+
+}
+function clearMarkers(){
+
+     var i;
+for (i = 0; i < markers.length; i++) {
+ 
+    map.removeLayer(markers[i]);
+}
+markers = [];
+}
+$("#all").click(function(){
+    clearMarkers();
+    drawMarkers(resal);
+});
+$("#oc").click(function(){
+clearMarkers();
+drawMarkers(resoc);
+});
+$("#positive").click(function(){
+clearMarkers();
+drawMarkers(respo);
+});
+$("#os").click(function(){
+clearMarkers();
+drawMarkers(resos);
+});
         </script>
     </body>
 </html>
