@@ -15,7 +15,7 @@
         <script src="https://tiles.unwiredmaps.com/js/leaflet-unwired.js"></script>
         <script src='https://tiles.unwiredmaps.com/v2/js/unwired-gl.js?v=0.1.6'></script>
         <link href='https://tiles.unwiredmaps.com/v2/js/unwired-gl.css?v=0.1.6' rel='stylesheet' />
-        
+        <script src="https://cover-9ddc.restdb.io/rest/_jsapi.js"></script>
         <style>
             body { margin:0px; padding:0px; }
             #map { position:absolute; top:0px; bottom:0px; width:100%; }
@@ -53,7 +53,25 @@ L.control.layers({
     "Hybrid": hybrid
 }).addTo(map);
             //Add Geolocation control to the map (will only render when 
-var settings = {
+var db = new restdb("5e91b014111788414066c925");
+var query = {}; // get all records
+var hints = {"$max": 10, "$orderby": {"_id": -1}}; // top ten, sort by creation id in descending order
+db.surveyid.find(query, hints, function(err, res){
+  if (!err){
+    console.log(res);
+    var i;
+for (i = 0; i < res.length; i++) {
+ 
+    var marker = L.marker([ res[i].lat/10000, res[i].lon/10000]).addTo(map);
+    marker.bindTooltip("Number of residents: "+res[i].number + " Survey ID: " + res[i].id).openTooltip();
+   /* var popup = L.popup()
+    .setLatLng([ res[i].lat/10000, res[i].lon/10000])
+    .setContent("Number of residents: "+res[i].number + " Survey ID: " + res[i].id)
+    .addTo(map);*/
+}
+  }
+});
+/*var settings = {
   "async": true,
   "crossDomain": true,
   "url": "https://cover-9ddc.restdb.io/rest/surveyid",
@@ -73,6 +91,7 @@ for (i = 0; i < response.length; i++) {
     var marker = L.marker([ response[i].lat/10000, response[i].lon/10000]).addTo(map);
 }
 });
+*/
 
 
 /*var jsondata = {"number": "1","lat": "12", "lon":"12"};
