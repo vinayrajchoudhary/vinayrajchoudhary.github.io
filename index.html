@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -9,6 +10,9 @@
         <!-- 
             Use Unwired Maps JS & CSS in addition to Mapbox's GL library for the simplest implementation of Unwired Map Tiles
         -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+        <script src="https://tiles.unwiredmaps.com/js/leaflet-unwired.js"></script>
         <script src='https://tiles.unwiredmaps.com/v2/js/unwired-gl.js?v=0.1.6'></script>
         <link href='https://tiles.unwiredmaps.com/v2/js/unwired-gl.css?v=0.1.6' rel='stylesheet' />
         
@@ -19,48 +23,76 @@
     </head>
     <body>
         <div id='map'></div>
+        
+<div id="mapid" style="width: 600px; height: 400px;"></div>
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
         <script>
             //Add your Unwired Maps Access Token here (not the API token!)
-            unwired.key = mapboxgl.accessToken = 'pk.a5c3fbf2119bfb2275b62eddbccd76b3';
-            //Define the map and configure the map's theme
-            var map = new mapboxgl.Map({
-                container: 'map',
-                attributionControl: false, //need this to show a compact attribution icon (i) instead of the whole text
-                style: unwired.getLayer("streets"), //get Unwired's style template
-                zoom: 11,
-                center: [78.4008997, 17.4206485]
-            });
-                        
-            //Add Unwired's Layer Control plugin            
-            //Define layers you want to add to the layer controls; the first element will be the default layer
-            var layers = ["streets", "earth", "hybrid"];
-            map.addControl(new unwiredLayerControl({
-                key: unwired.key,
-                layers: layers
-            }), 'top-left');
+           var key = '2f823d9571372d';
 
-            //Add Navigation controls to the map to the top-right corner of the map
-            var nav = new mapboxgl.NavigationControl();
-            map.addControl(nav, 'top-right');
+// Add layers that we need to the map
+var streets = L.tileLayer.Unwired({key: key, scheme: "streets"});
+var earth = L.tileLayer.Unwired({key: key, scheme: "earth"});
+var hybrid = L.tileLayer.Unwired({key: key, scheme: "hybrid"});
+
+// Initialize the map
+var map = L.map('map', {
+        center: [28.104086, 75.39917], //map loads with this location as center
+        zoom: 13,
+        layers: [streets] // Show 'streets' by default
+});
+
+// Add the 'scale' control
+L.control.scale().addTo(map);
+
+// Add the 'layers' control
+L.control.layers({
+    "Streets": streets,
+    "Earth": earth,
+    "Hybrid": hybrid
+}).addTo(map);
+            //Add Geolocation control to the map (will only render when 
+var settings = {
+  "async": true,
+  "crossDomain": true,
+  "url": "https://cover-9ddc.restdb.io/rest/surveyid",
+  "method": "GET",
+  "headers": {
+    "content-type": "application/json",
+    "x-apikey": "5e91b014111788414066c925",
+    "cache-control": "no-cache"
+  }
+}
+
+$.ajax(settings).done(function (response) {
+  console.log(response);
+var i;
+for (i = 0; i < response.length; i++) {
+ 
+    var marker = L.marker([ response[i].lat/10000, response[i].lon/10000]).addTo(map);
+}
+});
 
 
-            //Add a 'full screen' button to the map
-            map.addControl(new mapboxgl.FullscreenControl());
-            
-            //Add a Scale to the map
-            map.addControl(new mapboxgl.ScaleControl({
-                maxWidth: 80,
-                unit: 'metric' //imperial for miles
-            }));
+/*var jsondata = {"number": "1","lat": "12", "lon":"12"};
+var settings = {
+  "async": true,
+  "crossDomain": true,
+  "url": "https://cover-9ddc.restdb.io/rest/surveyid",
+  "method": "POST",
+  "headers": {
+    "content-type": "application/json",
+    "x-apikey": "5e91b014111788414066c925",
+    "cache-control": "no-cache"
+  },
+  "processData": false,
+  "data": JSON.stringify(jsondata)
+}
 
-            //Add Geolocation control to the map (will only render when page is opened over HTTPS)
-            map.addControl(new mapboxgl.GeolocateControl({
-                positionOptions: {
-                    enableHighAccuracy: true
-                },
-                trackUserLocation: true
-            }));
-
+$.ajax(settings).done(function (response) {
+  console.log(response);
+});*/
 
         </script>
     </body>
